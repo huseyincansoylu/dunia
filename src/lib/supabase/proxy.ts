@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Pages that need a signed-in user. Everything else (landing, login, public profiles) is open. */
-const PROTECTED_PREFIXES = ["/atlas", "/reset-password"];
+const PROTECTED_PREFIXES = ["/atlas", "/reset-password", "/welcome"];
 
 /**
  * Refreshes the Supabase session cookie on every request and sends signed-out

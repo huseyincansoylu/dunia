@@ -1,9 +1,12 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 
 /** Supabase client for Server Components, Server Actions and Route Handlers. Create one per request. */
 export async function createClient() {
+  // The client reads the clock when it starts, which prerendering forbids; only build it at request time.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient(

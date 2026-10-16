@@ -39,12 +39,11 @@ export function DuniaMark({ level = 0.45, tone = "theme", className, ...props }:
         stroke={RING[tone]}
         strokeWidth="7"
       />
-      <g clipPath={`url(#${clipId})`}>
-        <path
-          d={`M0 ${y}q8 -4.5 16 0t16 0t16 0t16 0V64H0Z`}
-          fill="var(--visited)"
-        />
-      </g>
+      {clamped > 0 && (
+        <g clipPath={`url(#${clipId})`}>
+          <path d={`M0 ${y}q8 -4.5 16 0t16 0t16 0t16 0V64H0Z`} fill="var(--visited)" />
+        </g>
+      )}
     </svg>
   );
 }

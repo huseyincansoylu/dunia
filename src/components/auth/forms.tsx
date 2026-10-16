@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { MailCheckIcon } from "lucide-react";
 import {
+  chooseUsername,
   requestPasswordReset,
   signIn,
   signUp,
@@ -12,6 +13,7 @@ import {
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth-rules";
 import { AuthField, FormError, SubmitButton } from "./auth-fields";
 import { AuthHeading, TextLink } from "./auth-shell";
+import { UsernameField } from "./username-field";
 
 const withNext = (path: string, next: string) => (next === "/atlas" ? path : `${path}?next=${encodeURIComponent(next)}`);
 
@@ -75,16 +77,17 @@ export function SignUpForm({ next }: { next: string }) {
   if (state.sent) {
     return (
       <CheckInbox title="Confirm your email" email={state.email}>
-        Open the link in it to finish creating your account.
+        Open the link in it to finish creating your account. Your map will live at dunia/{state.username}.
       </CheckInbox>
     );
   }
 
   return (
     <form action={action} className="grid gap-5" noValidate>
-      <AuthHeading title="Create your map">Sign up with your email. It takes a few seconds.</AuthHeading>
+      <AuthHeading title="Create your map">Pick your address and sign up. It takes a few seconds.</AuthHeading>
       <FormError message={state.error} />
       <input type="hidden" name="next" value={next} />
+      <UsernameField defaultValue={state.username} error={state.fieldErrors?.username} />
       <AuthField
         id="email"
         name="email"
@@ -188,6 +191,23 @@ export function ResetPasswordForm({ email }: { email?: string }) {
       />
       <SubmitButton pending={pending} pendingLabel="Saving…">
         Save password
+      </SubmitButton>
+    </form>
+  );
+}
+
+export function WelcomeForm() {
+  const [state, action, pending] = useActionState<AuthFormState, FormData>(chooseUsername, {});
+
+  return (
+    <form action={action} className="grid gap-5" noValidate>
+      <AuthHeading title="Pick your username">
+        It&apos;s the address of your map, the link you&apos;ll put in your bio.
+      </AuthHeading>
+      <FormError message={state.error} />
+      <UsernameField defaultValue={state.username} error={state.fieldErrors?.username} />
+      <SubmitButton pending={pending} pendingLabel="Saving…">
+        Continue
       </SubmitButton>
     </form>
   );

@@ -1,6 +1,6 @@
 import { CONTINENTS, type Continent, type VisitStats } from "@/data/countries";
 
-const CONTINENT_NAMES: Record<Continent, string> = {
+export const CONTINENT_NAMES: Record<Continent, string> = {
   europe: "Europe",
   asia: "Asia",
   africa: "Africa",

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Atlas } from "@/components/atlas/atlas";
@@ -6,10 +7,12 @@ import { DuniaLogo } from "@/components/brand/dunia-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
+import { getProfile } from "@/lib/profiles";
+import { getVisitedCountries } from "@/lib/visits";
 
 export const metadata: Metadata = { title: "Your map" };
 
-// The signed-in user's panel. Countries are still kept in this browser until they move to the database.
+// The signed-in user's panel: mark and unmark countries. Saved to the database.
 export default function AtlasPage() {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-6 sm:px-6 sm:py-8">
@@ -25,11 +28,13 @@ export default function AtlasPage() {
       <section className="grid gap-2">
         <h1 className="text-3xl font-extrabold sm:text-4xl">Your map</h1>
         <p className="max-w-[60ch] text-muted-foreground">
-          Tap a country on the map or search for it below. Your countries are saved in this browser.
+          Tap a country on the map or search for it below. Changes save automatically.
         </p>
       </section>
 
-      <Atlas />
+      <Suspense fallback={<AtlasSkeleton />}>
+        <AtlasData />
+      </Suspense>
     </main>
   );
 }
@@ -45,6 +50,22 @@ async function Account() {
           Sign out
         </Button>
       </form>
+    </div>
+  );
+}
+
+async function AtlasData() {
+  const user = await requireUser("/atlas");
+  const [profile, visited] = await Promise.all([getProfile(user.id), getVisitedCountries(user.id)]);
+  if (!profile?.username) redirect("/welcome");
+  return <Atlas initialVisited={visited} />;
+}
+
+function AtlasSkeleton() {
+  return (
+    <div className="grid gap-6" aria-busy="true" aria-label="Loading your map">
+      <div className="h-24 w-48 animate-pulse rounded-2xl bg-muted" />
+      <div className="aspect-[1000/436] animate-pulse rounded-2xl bg-muted" />
     </div>
   );
 }
