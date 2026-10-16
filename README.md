@@ -24,6 +24,7 @@ Early MVP, web first (mobile responsive).
 | Framework | [Next.js](https://nextjs.org) 16 (App Router), React 19, TypeScript |
 | Styling | Tailwind CSS 4, [shadcn/ui](https://ui.shadcn.com) (Base UI) |
 | Map | Natural Earth via [world-atlas](https://github.com/topojson/world-atlas), pre-rendered to SVG paths with d3-geo |
+| Database | [Supabase](https://supabase.com) Postgres with [Drizzle ORM](https://orm.drizzle.team) |
 | Fonts | Funnel Display (headings), Geist, Geist Mono |
 
 ## Getting started
@@ -32,6 +33,7 @@ Requires Node.js 22+ and pnpm.
 
 ```bash
 pnpm install
+cp .env.example .env.local   # then fill in your Supabase values
 pnpm dev
 ```
 
@@ -45,6 +47,9 @@ Open [http://localhost:3000](http://localhost:3000).
 | `pnpm lint` | Run ESLint |
 | `pnpm generate:countries` | Regenerate `src/data/countries.json` |
 | `pnpm generate:map` | Regenerate `src/data/world-map.json` (run after the countries) |
+| `pnpm db:generate` | Write a SQL migration from `src/db/schema.ts` to `drizzle/` |
+| `pnpm db:migrate` | Apply pending migrations to the database |
+| `pnpm db:studio` | Browse the database in Drizzle Studio |
 
 ## Project structure
 
