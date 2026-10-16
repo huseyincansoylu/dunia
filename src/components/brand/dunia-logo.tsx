@@ -4,13 +4,17 @@ import { cn } from "@/lib/utils";
 type DuniaMarkProps = React.ComponentProps<"svg"> & {
   /** Share of the world visited, 0–1. The wave rises with it. */
   level?: number;
+  /** "onDeep" for surfaces that stay dark in both themes (story image, name section). */
+  tone?: "theme" | "onDeep";
 };
+
+const RING = { theme: "var(--primary)", onDeep: "#4fb3d9" };
 
 /**
  * The "filling globe": a ring (the world) with a saffron wave rising inside it.
  * Colors come from the theme: ring = primary, wave = visited.
  */
-export function DuniaMark({ level = 0.45, className, ...props }: DuniaMarkProps) {
+export function DuniaMark({ level = 0.45, tone = "theme", className, ...props }: DuniaMarkProps) {
   const clipId = useId();
   const clamped = Math.min(1, Math.max(0, level));
   const y = (53 - clamped * 42).toFixed(1);
@@ -32,7 +36,7 @@ export function DuniaMark({ level = 0.45, className, ...props }: DuniaMarkProps)
         cy="32"
         r="27"
         fill="none"
-        stroke="var(--primary)"
+        stroke={RING[tone]}
         strokeWidth="7"
       />
       <g clipPath={`url(#${clipId})`}>
@@ -47,10 +51,11 @@ export function DuniaMark({ level = 0.45, className, ...props }: DuniaMarkProps)
 
 type DuniaLogoProps = React.ComponentProps<"span"> & {
   level?: number;
+  tone?: DuniaMarkProps["tone"];
 };
 
 /** Mark + "dunia" wordmark. Size it with a text-* class. */
-export function DuniaLogo({ level, className, ...props }: DuniaLogoProps) {
+export function DuniaLogo({ level, tone, className, ...props }: DuniaLogoProps) {
   return (
     <span
       className={cn(
@@ -59,7 +64,7 @@ export function DuniaLogo({ level, className, ...props }: DuniaLogoProps) {
       )}
       {...props}
     >
-      <DuniaMark level={level} className="size-[0.86em]" />
+      <DuniaMark level={level} tone={tone} className="size-[0.86em]" />
       dunia
     </span>
   );
