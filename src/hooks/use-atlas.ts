@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
-import { COUNTRY_LISTS, DEFAULT_LIST, getCountry, type CountryList } from "@/data/countries";
+import { getCountry } from "@/data/countries";
 
 /**
  * The user's atlas, kept in localStorage until accounts exist.
@@ -11,10 +11,9 @@ const STORAGE_KEY = "dunia:atlas:v1";
 
 export type Atlas = {
   visited: string[];
-  list: CountryList;
 };
 
-const EMPTY: Atlas = { visited: [], list: DEFAULT_LIST };
+const EMPTY: Atlas = { visited: [] };
 
 const listeners = new Set<() => void>();
 let cachedRaw: string | null = null;
@@ -39,7 +38,6 @@ function parse(raw: string | null): Atlas {
     const value = JSON.parse(raw) as Partial<Atlas>;
     return {
       visited: Array.isArray(value.visited) ? value.visited.filter((c) => getCountry(c)) : [],
-      list: COUNTRY_LISTS.includes(value.list as CountryList) ? (value.list as CountryList) : DEFAULT_LIST,
     };
   } catch {
     return EMPTY;
@@ -79,9 +77,5 @@ export function useAtlas() {
     write({ ...current, visited });
   }, []);
 
-  const setList = useCallback((list: CountryList) => {
-    write({ ...read(), list });
-  }, []);
-
-  return { ...atlas, toggle, setList };
+  return { ...atlas, toggle };
 }

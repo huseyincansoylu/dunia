@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import map from "@/data/world-map.json";
-import { flagEmoji, getCountry, isInList, type CountryList, type Locale } from "@/data/countries";
+import { flagEmoji, getCountry, type Locale } from "@/data/countries";
 import { cn } from "@/lib/utils";
 
 type WorldMapProps = {
   visited: ReadonlySet<string>;
-  list: CountryList;
   locale: Locale;
   onToggle: (iso2: string) => void;
   className?: string;
@@ -17,13 +16,11 @@ type WorldMapProps = {
  * Tap a country to mark it visited. Countries too small to tap also have a dot.
  * The map is pointer-only; the country search is the keyboard and screen-reader path.
  */
-export function WorldMap({ visited, list, locale, onToggle, className }: WorldMapProps) {
+export function WorldMap({ visited, locale, onToggle, className }: WorldMapProps) {
   const [hovered, setHovered] = useState<string | null>(null);
 
-  const counts = (iso2: string | null): iso2 is string => {
-    const country = iso2 ? getCountry(iso2) : undefined;
-    return !!country && isInList(country, list);
-  };
+  // Territories we don't count (Greenland, Western Sahara, ...) have no country.
+  const counts = (iso2: string | null): iso2 is string => !!iso2 && !!getCountry(iso2);
 
   const isoFromEvent = (e: React.SyntheticEvent) => {
     const iso2 = (e.target as Element).getAttribute("data-iso");

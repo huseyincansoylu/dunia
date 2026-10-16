@@ -10,10 +10,10 @@ export default function Home() {
 
       <section className="grid gap-2">
         <h1 className="text-3xl font-extrabold sm:text-4xl">
-          Gezdiğin her ülke, <span className="text-primary">haritanda</span> bir renk.
+          Every country you&apos;ve visited, a color on <span className="text-primary">your map</span>.
         </h1>
         <p className="max-w-[60ch] text-muted-foreground">
-          Haritada bir ülkeye dokun ya da aşağıdan ara. İşaretlediklerin bu tarayıcıda saklanır.
+          Tap a country on the map or search for it below. Your countries are saved in this browser.
         </p>
       </section>
 

@@ -16,12 +16,11 @@ export const CONTINENTS = [
 export type Continent = (typeof CONTINENTS)[number];
 
 /**
- * Which countries count toward the total. Lists are nested:
- * un193 ⊂ un195 ⊂ all197, and each country's `tier` is the smallest list it belongs to.
+ * Dunia counts 197 countries: the 193 UN member states, the two UN observer
+ * states (Vatican City, Palestine), plus Kosovo and Taiwan.
+ * `tier` records which of those groups a country belongs to.
  */
-export const COUNTRY_LISTS = ["un193", "un195", "all197"] as const;
-export type CountryList = (typeof COUNTRY_LISTS)[number];
-export const DEFAULT_LIST: CountryList = "all197";
+export type CountryTier = "un193" | "un195" | "all197";
 
 export type Country = {
   iso2: string;
@@ -29,7 +28,7 @@ export type Country = {
   /** ISO 3166-1 numeric; matches world-atlas feature ids. */
   numeric: string;
   continent: Continent;
-  tier: CountryList;
+  tier: CountryTier;
   name: Record<Locale, string>;
 };
 
@@ -39,14 +38,6 @@ const BY_ISO2 = new Map(COUNTRIES.map((c) => [c.iso2, c]));
 
 export function getCountry(iso2: string): Country | undefined {
   return BY_ISO2.get(iso2.toUpperCase());
-}
-
-export function isInList(country: Country, list: CountryList): boolean {
-  return COUNTRY_LISTS.indexOf(country.tier) <= COUNTRY_LISTS.indexOf(list);
-}
-
-export function countriesInList(list: CountryList): Country[] {
-  return COUNTRIES.filter((c) => isInList(c, list));
 }
 
 /** "TR" → "🇹🇷" (regional indicator symbols). */
@@ -77,13 +68,9 @@ const SEARCH_INDEX = COUNTRIES.map((c) => ({
  * Matches names in every locale and ISO codes. Names starting with the query
  * come first, then names containing it; ties are sorted by the locale's name.
  */
-export function searchCountries(
-  query: string,
-  locale: Locale,
-  list: CountryList = DEFAULT_LIST
-): Country[] {
+export function searchCountries(query: string, locale: Locale): Country[] {
   const q = normalizeForSearch(query);
-  const pool = SEARCH_INDEX.filter(({ country }) => isInList(country, list));
+  const pool = SEARCH_INDEX;
   const byName = (a: Country, b: Country) => a.name[locale].localeCompare(b.name[locale], locale);
   if (!q) return pool.map((e) => e.country).sort(byName);
 
@@ -109,15 +96,15 @@ export type VisitStats = {
   byContinent: Record<Continent, { visited: number; total: number }>;
 };
 
-/** Codes outside the chosen list are ignored, so switching lists never inflates the count. */
-export function visitStats(visitedIso2: Iterable<string>, list: CountryList = DEFAULT_LIST): VisitStats {
+/** Unknown codes are ignored. */
+export function visitStats(visitedIso2: Iterable<string>): VisitStats {
   const visitedSet = new Set([...visitedIso2].map((c) => c.toUpperCase()));
   const byContinent = Object.fromEntries(
     CONTINENTS.map((c) => [c, { visited: 0, total: 0 }])
   ) as VisitStats["byContinent"];
 
   let visited = 0;
-  for (const country of countriesInList(list)) {
+  for (const country of COUNTRIES) {
     const bucket = byContinent[country.continent];
     bucket.total++;
     if (visitedSet.has(country.iso2)) {
@@ -125,7 +112,7 @@ export function visitStats(visitedIso2: Iterable<string>, list: CountryList = DE
       visited++;
     }
   }
-  const total = countriesInList(list).length;
+  const total = COUNTRIES.length;
 
   return {
     visited,

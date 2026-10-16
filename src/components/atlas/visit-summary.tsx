@@ -1,38 +1,29 @@
 import { CONTINENTS, type Continent, type VisitStats } from "@/data/countries";
 
 const CONTINENT_NAMES: Record<Continent, string> = {
-  europe: "Avrupa",
-  asia: "Asya",
-  africa: "Afrika",
-  "north-america": "Kuzey Amerika",
-  "south-america": "Güney Amerika",
-  oceania: "Okyanusya",
+  europe: "Europe",
+  asia: "Asia",
+  africa: "Africa",
+  "north-america": "North America",
+  "south-america": "South America",
+  oceania: "Oceania",
 };
 
-// Possessive suffix after a number, following how it's read aloud:
-// %1'i (bir), %6'sı (altı), %20'si (yirmi), %40'ı (kırk), %100'ü (yüz).
-const ONES = ["", "'i", "'si", "'ü", "'ü", "'i", "'sı", "'si", "'i", "'u"];
-const TENS = ["", "'u", "'si", "'u", "'ı", "'si", "'ı", "'i", "'i", "'ı"];
-
-function possessiveTr(n: number): string {
-  if (n === 0) return "'ı";
-  if (n % 100 === 0) return "'ü";
-  return n % 10 !== 0 ? ONES[n % 10] : TENS[Math.floor(n / 10) % 10];
-}
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 export function VisitCounter({ stats }: { stats: VisitStats }) {
   return (
     <div>
       <p
         className="font-heading text-6xl leading-none font-extrabold tracking-tighter tabular-nums sm:text-7xl"
-        aria-label={`${stats.total} ülkeden ${stats.visited} ülke`}
+        aria-label={`${stats.visited} of ${stats.total} countries`}
       >
         {stats.visited}
         <span className="text-[0.45em] text-muted-foreground">/{stats.total}</span>
       </p>
       <p className="mt-2 text-muted-foreground">
-        ülke · dünyanın %{stats.percent}
-        {possessiveTr(stats.percent)} · {stats.continentsVisited} kıta
+        {stats.visited === 1 ? "country" : "countries"} · {stats.percent}% of the world ·{" "}
+        {plural(stats.continentsVisited, "continent", "continents")}
       </p>
     </div>
   );

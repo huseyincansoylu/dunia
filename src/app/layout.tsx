@@ -24,13 +24,13 @@ export const metadata: Metadata = {
     default: "Dunia",
     template: "%s · Dunia",
   },
-  description: "Gezdiğin her ülke, haritanda bir renk.",
+  description: "Every country you've visited, a color on your map.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="tr"
+      lang="en"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${funnelDisplay.variable} h-full antialiased`}
     >

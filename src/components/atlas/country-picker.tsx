@@ -2,26 +2,25 @@
 
 import { useId, useMemo, useState } from "react";
 import { CheckIcon, PlusIcon, SearchIcon } from "lucide-react";
-import { flagEmoji, searchCountries, type CountryList, type Locale } from "@/data/countries";
+import { flagEmoji, searchCountries, type Locale } from "@/data/countries";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 type CountryPickerProps = {
   visited: ReadonlySet<string>;
-  list: CountryList;
   locale: Locale;
   onToggle: (iso2: string) => void;
 };
 
-export function CountryPicker({ visited, list, locale, onToggle }: CountryPickerProps) {
+export function CountryPicker({ visited, locale, onToggle }: CountryPickerProps) {
   const [query, setQuery] = useState("");
   const inputId = useId();
-  const results = useMemo(() => searchCountries(query, locale, list), [query, locale, list]);
+  const results = useMemo(() => searchCountries(query, locale), [query, locale]);
 
   return (
     <div className="grid gap-3">
       <label htmlFor={inputId} className="text-sm font-medium">
-        Ülke ara
+        Search countries
       </label>
       <div className="relative">
         <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -30,16 +29,16 @@ export function CountryPicker({ visited, list, locale, onToggle }: CountryPicker
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Japonya, Peru, İzlanda…"
+          placeholder="Japan, Peru, Iceland…"
           autoComplete="off"
           className="h-11 rounded-xl pl-9 text-base"
         />
       </div>
 
-      <ul className="max-h-80 overflow-y-auto rounded-2xl border bg-card p-1.5" aria-label="Ülkeler">
+      <ul className="max-h-80 overflow-y-auto rounded-2xl border bg-card p-1.5" aria-label="Countries">
         {results.length === 0 && (
           <li className="px-3 py-6 text-center text-sm text-muted-foreground">
-            &ldquo;{query}&rdquo; ile eşleşen bir ülke yok.
+            No country matches &ldquo;{query}&rdquo;.
           </li>
         )}
         {results.map((country) => {
