@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { WelcomeForm } from "@/components/auth/forms";
 import { requireUser } from "@/lib/auth";
-import { getProfile } from "@/lib/profiles";
+import { accountExists, getProfile } from "@/lib/profiles";
 
 export const metadata: Metadata = { title: "Pick your username" };
 
@@ -21,5 +21,7 @@ async function Content() {
   const user = await requireUser("/welcome");
   const profile = await getProfile(user.id);
   if (profile?.username) redirect("/atlas");
+  // No profile at all can mean the account was just deleted while this session lived on.
+  if (!profile && !(await accountExists(user.id))) redirect("/auth/gone");
   return <WelcomeForm />;
 }

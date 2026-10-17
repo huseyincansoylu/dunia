@@ -48,3 +48,38 @@ export function ThemeToggle({ className }: { className?: string }) {
     </div>
   );
 }
+
+const SEGMENTS = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+  { value: "system", label: "Device" },
+] as const;
+
+/** The full-width Light / Dark / Device switch on the Me tab. */
+export function ThemeSegmented({ className }: { className?: string }) {
+  const { theme, setTheme } = useTheme();
+  const hydrated = useHydrated();
+
+  return (
+    <div role="radiogroup" aria-label="Theme" className={cn("grid grid-cols-3 rounded-xl bg-secondary p-[3px]", className)}>
+      {SEGMENTS.map(({ value, label }) => {
+        const active = hydrated && theme === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => setTheme(value)}
+            className={cn(
+              "h-9 rounded-[9px] text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              active ? "bg-card font-semibold text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

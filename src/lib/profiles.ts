@@ -1,6 +1,7 @@
 import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
+import { authUsers } from "drizzle-orm/supabase";
 import { profiles, type Profile } from "@/db/schema";
 import { getVisitedCountries } from "./visits";
 
@@ -72,4 +73,29 @@ export async function getProfileByUsername(username: string): Promise<PublicProf
     isPublic: profile.isPublic,
     visited: await getVisitedCountries(profile.id),
   };
+}
+
+export async function setDisplayName(userId: string, displayName: string | null) {
+  await db.update(profiles).set({ displayName }).where(eq(profiles.id, userId));
+}
+
+export async function setProfilePublic(userId: string, isPublic: boolean) {
+  await db.update(profiles).set({ isPublic }).where(eq(profiles.id, userId));
+}
+
+/**
+ * Deletes the Supabase Auth user; the profile and visits go with it (on delete cascade).
+ * Uses the database connection, so no service-role key is needed.
+ */
+export async function deleteAccount(userId: string) {
+  await db.delete(authUsers).where(eq(authUsers.id, userId));
+}
+
+/**
+ * A session token stays valid for up to an hour after its account is deleted.
+ * Pages that find no profile ask this before treating the visitor as a new user.
+ */
+export async function accountExists(userId: string): Promise<boolean> {
+  const [row] = await db.select({ id: authUsers.id }).from(authUsers).where(eq(authUsers.id, userId)).limit(1);
+  return !!row;
 }

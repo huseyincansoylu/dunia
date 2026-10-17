@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ArrowUpRightIcon } from "lucide-react";
 import { Atlas } from "@/components/atlas/atlas";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { requireUser } from "@/lib/auth";
 import { aimAt } from "@/lib/globe";
 import { GLOBE_POINTS } from "@/lib/globe-svg";
@@ -48,19 +47,6 @@ async function AtlasData() {
         initialEntries={entries}
         globeRotate={aimAt(new Set(entries.filter((e) => isCounted(e.status)).map((e) => e.iso2)), GLOBE_POINTS)}
       />
-
-      {/* Until the Me tab exists, account controls live at the bottom of the map. */}
-      <footer className="mt-auto flex items-center justify-between gap-3 border-t pt-4 text-sm text-muted-foreground">
-        <span className="min-w-0 truncate">{user.email}</span>
-        <div className="flex shrink-0 items-center gap-2">
-          <ThemeToggle />
-          <form action="/auth/signout" method="post">
-            <button type="submit" className="h-9 rounded-lg px-2 font-medium text-foreground outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50">
-              Sign out
-            </button>
-          </form>
-        </div>
-      </footer>
     </div>
   );
 }

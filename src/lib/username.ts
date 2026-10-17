@@ -49,3 +49,6 @@ export function usernameProblem(username: string): string | null {
 export function isReservedUsername(username: string): boolean {
   return RESERVED.has(username);
 }
+
+/** The optional name shown above the username. The database checks the same limit. */
+export const DISPLAY_NAME_MAX_LENGTH = 50;
