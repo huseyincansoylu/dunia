@@ -1,37 +1,22 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import Link from "next/link";
+import { ArrowUpRightIcon } from "lucide-react";
 import { Atlas } from "@/components/atlas/atlas";
-import { DuniaLogo } from "@/components/brand/dunia-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
+import { aimAt } from "@/lib/globe";
+import { GLOBE_POINTS } from "@/lib/globe-svg";
 import { getProfile } from "@/lib/profiles";
 import { getVisitedCountries } from "@/lib/visits";
 
 export const metadata: Metadata = { title: "Your map" };
 
-// The signed-in user's panel: mark and unmark countries. Saved to the database.
+// The signed-in user's map tab. Mobile first: one column, the map and a search sheet.
 export default function AtlasPage() {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-6 sm:px-6 sm:py-8">
-      <header className="flex items-center justify-between gap-4 border-b pb-4">
-        <Link href="/" aria-label="Dunia home">
-          <DuniaLogo />
-        </Link>
-        <Suspense fallback={<div className="h-9" />}>
-          <Account />
-        </Suspense>
-      </header>
-
-      <section className="grid gap-2">
-        <h1 className="text-3xl font-extrabold sm:text-4xl">Your map</h1>
-        <p className="max-w-[60ch] text-muted-foreground">
-          Tap a country on the map or search for it below. Changes save automatically.
-        </p>
-      </section>
-
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-3 pb-8">
       <Suspense fallback={<AtlasSkeleton />}>
         <AtlasData />
       </Suspense>
@@ -39,33 +24,50 @@ export default function AtlasPage() {
   );
 }
 
-async function Account() {
-  const user = await requireUser("/atlas");
-  return (
-    <div className="flex min-w-0 items-center gap-3">
-      <span className="hidden truncate text-sm text-muted-foreground sm:block">{user.email}</span>
-      <ThemeToggle />
-      <form action="/auth/signout" method="post">
-        <Button type="submit" variant="outline" className="h-9 rounded-xl px-3">
-          Sign out
-        </Button>
-      </form>
-    </div>
-  );
-}
-
 async function AtlasData() {
   const user = await requireUser("/atlas");
   const [profile, visited] = await Promise.all([getProfile(user.id), getVisitedCountries(user.id)]);
   if (!profile?.username) redirect("/welcome");
-  return <Atlas initialVisited={visited} />;
+
+  return (
+    <div className="flex flex-1 flex-col gap-[18px]">
+      <header className="flex h-11 items-center justify-between gap-3">
+        <h1 className="text-2xl font-extrabold tracking-[-0.02em]">Your map</h1>
+        <Link
+          href={`/${profile.username}`}
+          className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-2 font-mono text-xs text-secondary-foreground outline-none hover:bg-secondary/80 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          dunia/{profile.username}
+          <ArrowUpRightIcon className="size-3.5 text-primary" aria-hidden="true" />
+          <span className="sr-only">(your public page)</span>
+        </Link>
+      </header>
+
+      <Atlas initialVisited={visited} globeRotate={aimAt(new Set(visited), GLOBE_POINTS)} />
+
+      {/* Until the Me tab exists, account controls live at the bottom of the map. */}
+      <footer className="mt-auto flex items-center justify-between gap-3 border-t pt-4 text-sm text-muted-foreground">
+        <span className="min-w-0 truncate">{user.email}</span>
+        <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle />
+          <form action="/auth/signout" method="post">
+            <button type="submit" className="h-9 rounded-lg px-2 font-medium text-foreground outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50">
+              Sign out
+            </button>
+          </form>
+        </div>
+      </footer>
+    </div>
+  );
 }
 
 function AtlasSkeleton() {
   return (
-    <div className="grid gap-6" aria-busy="true" aria-label="Loading your map">
-      <div className="h-24 w-48 animate-pulse rounded-2xl bg-muted" />
-      <div className="aspect-[1000/436] animate-pulse rounded-2xl bg-muted" />
+    <div className="flex flex-col gap-[18px]" aria-busy="true" aria-label="Loading your map">
+      <div className="h-11 w-32 animate-pulse rounded-lg bg-muted" />
+      <div className="h-16 w-40 animate-pulse rounded-xl bg-muted" />
+      <div className="h-[300px] animate-pulse rounded-3xl bg-muted" />
+      <div className="h-13 animate-pulse rounded-2xl bg-muted" />
     </div>
   );
 }

@@ -24,6 +24,8 @@ type GlobeCanvasProps = {
  */
 export function GlobeCanvas({ visited, rotate }: GlobeCanvasProps) {
   const ref = useRef<HTMLCanvasElement>(null);
+  // Where the globe is turned to, kept across redraws so adding a country doesn't snap it back.
+  const angle = useRef<number | null>(null);
   const [ready, setReady] = useState(false);
   const visitedKey = visited.join(",");
   const [startλ, startφ] = rotate;
@@ -73,12 +75,13 @@ export function GlobeCanvas({ visited, rotate }: GlobeCanvasProps) {
         projection.scale(size * GLOBE_RADIUS).translate([size / 2, size / 2]);
       };
 
-      let λ = startλ;
+      let λ = angle.current ?? startλ;
       const φ = startφ;
 
       const draw = () => {
         const c = size / 2;
         const r = size * GLOBE_RADIUS;
+        angle.current = λ;
         projection.rotate([λ, φ]);
         ctx.clearRect(0, 0, size, size);
 
