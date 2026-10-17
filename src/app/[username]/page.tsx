@@ -35,7 +35,7 @@ const loadProfile = cache(async (username: string) => {
   const viewer = await getCurrentUser();
   const isOwner = viewer?.id === profile.id;
   if (!profile.isPublic && !isOwner) return null;
-  return { profile, isOwner };
+  return { profile, isOwner, signedIn: !!viewer };
 });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -63,7 +63,7 @@ export default async function ProfilePage({ params }: Props) {
 
 const PREVIEW_COUNT = 8;
 
-function Profile({ profile, isOwner }: { profile: PublicProfile; isOwner: boolean }) {
+function Profile({ profile, isOwner, signedIn }: { profile: PublicProfile; isOwner: boolean; signedIn: boolean }) {
   const name = profile.displayName ?? profile.username;
   const stats = visitStats(profile.visited);
   const continents = CONTINENTS.map((c) => ({ id: c, ...stats.byContinent[c] }))
@@ -86,7 +86,7 @@ function Profile({ profile, isOwner }: { profile: PublicProfile; isOwner: boolea
           >
             <DuniaLogo tone="onDeep" className="text-lg" />
           </Link>
-          {!isOwner && (
+          {!signedIn && (
             <Link href="/signup" className="py-2.5 text-sm font-medium text-deep-muted hover:text-white">
               Create yours
             </Link>
@@ -120,10 +120,10 @@ function Profile({ profile, isOwner }: { profile: PublicProfile; isOwner: boolea
 
         {!isOwner && (
           <Link
-            href="/signup"
+            href={signedIn ? `/${profile.username}/compare` : "/signup"}
             className="mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white text-base font-semibold text-deep outline-none hover:bg-white/90 focus-visible:ring-3 focus-visible:ring-white/50"
           >
-            How many have you seen?
+            {signedIn ? "Compare with your map" : "How many have you seen?"}
             <ArrowRightIcon className="size-[18px] text-primary dark:text-[#0b4f6c]" aria-hidden="true" />
           </Link>
         )}

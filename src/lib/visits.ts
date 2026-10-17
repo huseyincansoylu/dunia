@@ -86,3 +86,12 @@ export async function startMap(userId: string, home: string | null, visitedIso2s
     }
   });
 }
+
+/** Adds countries to the wishlist; ones already on the map in any way are left alone. */
+export async function addToWishlist(userId: string, iso2s: string[]) {
+  if (iso2s.length === 0) return;
+  await db
+    .insert(visits)
+    .values(iso2s.map((countryIso2) => ({ userId, countryIso2, status: "want" as const })))
+    .onConflictDoNothing();
+}

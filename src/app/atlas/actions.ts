@@ -3,7 +3,7 @@
 import { COUNTRIES, getCountry } from "@/data/countries";
 import { getCurrentUser } from "@/lib/auth";
 import { NOTE_MAX_LENGTH, VISIT_STATUSES, YEAR_MIN, type VisitStatus } from "@/lib/visit-status";
-import { addVisits, removeVisits, saveVisit, startMap } from "@/lib/visits";
+import { addToWishlist, addVisits, removeVisits, saveVisit, startMap } from "@/lib/visits";
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 
@@ -104,5 +104,27 @@ export async function saveFirstMap(home: string | null, iso2s: string[]): Promis
     return { ok: true };
   } catch {
     return { ok: false, error: "Couldn't save your map. Check your connection and try again." };
+  }
+}
+
+/** "Add them to my wishlist" on the compare page. */
+export async function wishlistCountries(iso2s: string[]): Promise<SaveResult> {
+  const user = await getCurrentUser();
+  if (!user) return SIGNED_OUT;
+  if (!Array.isArray(iso2s)) return { ok: false, error: "Nothing to add." };
+
+  const valid = [
+    ...new Set(
+      iso2s
+        .slice(0, COUNTRIES.length)
+        .map((c) => getCountry(String(c))?.iso2)
+        .filter((c): c is string => !!c)
+    ),
+  ];
+  try {
+    await addToWishlist(user.id, valid);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Couldn't add them to your wishlist. Try again." };
   }
 }
