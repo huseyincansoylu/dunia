@@ -8,15 +8,16 @@ import { cn } from "@/lib/utils";
 type WorldMapProps = {
   visited: ReadonlySet<string>;
   locale: Locale;
-  onToggle: (iso2: string) => void;
+  /** Tapping a country opens its sheet. */
+  onSelect: (iso2: string) => void;
   className?: string;
 };
 
 /**
- * Tap a country to mark it visited. Countries too small to tap also have a dot.
+ * Tap a country to open its sheet. Countries too small to tap also have a dot.
  * The map is pointer-only; the country search is the keyboard and screen-reader path.
  */
-export function WorldMap({ visited, locale, onToggle, className }: WorldMapProps) {
+export function WorldMap({ visited, locale, onSelect, className }: WorldMapProps) {
   const [hovered, setHovered] = useState<string | null>(null);
 
   // Territories we don't count (Greenland, Western Sahara, ...) have no country.
@@ -38,7 +39,7 @@ export function WorldMap({ visited, locale, onToggle, className }: WorldMapProps
         onClick={(e) => {
           const iso2 = isoFromEvent(e);
           if (iso2) {
-            onToggle(iso2);
+            onSelect(iso2);
             setHovered(iso2);
           }
         }}

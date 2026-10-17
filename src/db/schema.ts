@@ -6,8 +6,9 @@
 // Drizzle on the server, and the public Supabase API key can't read or write them.
 
 import { sql } from "drizzle-orm";
-import { boolean, char, check, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, char, check, pgTable, primaryKey, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { authUsers } from "drizzle-orm/supabase";
+import { VISIT_STATUSES } from "@/lib/visit-status";
 
 const timestamps = {
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -44,12 +45,21 @@ export const visits = pgTable(
       .references(() => profiles.id, { onDelete: "cascade" }),
     // ISO 3166-1 alpha-2, matches src/data/countries.json.
     countryIso2: char({ length: 2 }).notNull(),
+    // "visited" and "lived" count toward the total; "want" is the wishlist and doesn't.
+    status: text({ enum: VISIT_STATUSES }).notNull().default("visited"),
+    // Year of the first trip, optional. Private to the user.
+    year: smallint(),
+    // Private to the user; never shown on the public page.
+    note: text(),
     ...timestamps,
   },
   (t) => [
-    // A country can be marked once per user; also serves "all visits of a user" lookups.
+    // A country appears once per user; also serves "all visits of a user" lookups.
     primaryKey({ columns: [t.userId, t.countryIso2] }),
     check("visits_country_iso2_format", sql`${t.countryIso2} ~ '^[A-Z]{2}$'`),
+    check("visits_status", sql`${t.status} in ('visited', 'want', 'lived')`),
+    check("visits_year_range", sql`${t.year} between 1900 and 2100`),
+    check("visits_note_length", sql`char_length(${t.note}) <= 500`),
   ]
 ).enableRLS();
 

@@ -2,7 +2,8 @@
 
 import { COUNTRIES, getCountry } from "@/data/countries";
 import { getCurrentUser } from "@/lib/auth";
-import { addVisits, removeVisits } from "@/lib/visits";
+import { NOTE_MAX_LENGTH, VISIT_STATUSES, YEAR_MIN, type VisitStatus } from "@/lib/visit-status";
+import { addVisits, removeVisits, saveVisit } from "@/lib/visits";
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 
@@ -48,5 +49,36 @@ export async function importCountries(iso2s: string[]): Promise<SaveResult> {
     return { ok: true };
   } catch {
     return { ok: false, error: "Couldn't add those countries. Try again." };
+  }
+}
+
+export type CountryDetails = { status: VisitStatus; year: number | null; note: string | null };
+
+/** Saves the country sheet: Visited / Want to go / Lived here, the first trip's year and a private note. */
+export async function saveCountryDetails(iso2: string, details: CountryDetails): Promise<SaveResult> {
+  const user = await getCurrentUser();
+  if (!user) return SIGNED_OUT;
+
+  const country = getCountry(String(iso2));
+  if (!country) return { ok: false, error: "That country isn't on the list." };
+
+  const status = details?.status;
+  if (!VISIT_STATUSES.includes(status)) return { ok: false, error: "Choose Visited, Want to go or Lived here." };
+
+  const thisYear = new Date().getFullYear();
+  const year = details.year == null ? null : Number(details.year);
+  if (year !== null && (!Number.isInteger(year) || year < YEAR_MIN || year > thisYear)) {
+    return { ok: false, error: `Enter a year between ${YEAR_MIN} and ${thisYear}, or leave it empty.` };
+  }
+
+  const note = typeof details.note === "string" ? details.note.trim() : "";
+  if (note.length > NOTE_MAX_LENGTH) return { ok: false, error: `Keep the note under ${NOTE_MAX_LENGTH} characters.` };
+
+  try {
+    // A wishlist country has no first trip yet.
+    await saveVisit(user.id, { iso2: country.iso2, status, year: status === "want" ? null : year, note: note || null });
+    return { ok: true };
+  } catch {
+    return { ok: false, error: `Couldn't save ${country.name.en}. Check your connection and try again.` };
   }
 }

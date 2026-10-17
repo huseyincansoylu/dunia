@@ -9,7 +9,8 @@ import { requireUser } from "@/lib/auth";
 import { aimAt } from "@/lib/globe";
 import { GLOBE_POINTS } from "@/lib/globe-svg";
 import { getProfile } from "@/lib/profiles";
-import { getVisitedCountries } from "@/lib/visits";
+import { getAtlasEntries } from "@/lib/visits";
+import { isCounted } from "@/lib/visit-status";
 
 export const metadata: Metadata = { title: "Your map" };
 
@@ -26,7 +27,7 @@ export default function AtlasPage() {
 
 async function AtlasData() {
   const user = await requireUser("/atlas");
-  const [profile, visited] = await Promise.all([getProfile(user.id), getVisitedCountries(user.id)]);
+  const [profile, entries] = await Promise.all([getProfile(user.id), getAtlasEntries(user.id)]);
   if (!profile?.username) redirect("/welcome");
 
   return (
@@ -43,7 +44,10 @@ async function AtlasData() {
         </Link>
       </header>
 
-      <Atlas initialVisited={visited} globeRotate={aimAt(new Set(visited), GLOBE_POINTS)} />
+      <Atlas
+        initialEntries={entries}
+        globeRotate={aimAt(new Set(entries.filter((e) => isCounted(e.status)).map((e) => e.iso2)), GLOBE_POINTS)}
+      />
 
       {/* Until the Me tab exists, account controls live at the bottom of the map. */}
       <footer className="mt-auto flex items-center justify-between gap-3 border-t pt-4 text-sm text-muted-foreground">

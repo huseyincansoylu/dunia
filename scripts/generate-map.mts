@@ -78,7 +78,19 @@ function round(n: number) {
   return Math.round(n * 10) / 10;
 }
 
-const out = { width: WIDTH, height, shapes, dots };
+// Each country's bounding box on the map, for zooming in on it (the country sheet).
+const DOT_BOX = 14;
+const boxes: Record<string, [number, number, number, number]> = {};
+for (const f of shapes110) {
+  const iso2 = byNumeric.get(idOf(f) ?? "")?.iso2;
+  if (!iso2) continue;
+  const [[x0, y0], [x1, y1]] = path.bounds(f);
+  boxes[iso2] = [round(x0), round(y0), round(x1), round(y1)];
+}
+// Countries missing from the 1:110m shapes only have a dot.
+for (const d of dots) boxes[d.iso2] ??= [d.x - DOT_BOX, d.y - DOT_BOX, d.x + DOT_BOX, d.y + DOT_BOX];
+
+const out = { width: WIDTH, height, shapes, dots, boxes };
 const json = JSON.stringify(out);
 writeFileSync(new URL("../src/data/world-map.json", import.meta.url), json + "\n");
 console.log(
