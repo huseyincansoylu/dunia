@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Your map" };
 // The signed-in user's map tab. Mobile first: one column, the map and a search sheet.
 export default function AtlasPage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-3 pb-8">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-3 pb-6">
       <Suspense fallback={<AtlasSkeleton />}>
         <AtlasData />
       </Suspense>
