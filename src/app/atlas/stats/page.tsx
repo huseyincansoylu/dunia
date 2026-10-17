@@ -4,12 +4,11 @@ import { CONTINENTS, visitStats } from "@/data/countries";
 import { CONTINENT_NAMES } from "@/components/atlas/visit-summary";
 import { DuniaMark } from "@/components/brand/dunia-logo";
 import { requireUser } from "@/lib/auth";
+import { MILESTONES } from "@/lib/milestones";
 import { getVisitedCountries } from "@/lib/visits";
 
 export const metadata: Metadata = { title: "Stats" };
 
-/** Round numbers worth celebrating, smallest first. The last is the whole list. */
-const MILESTONES = [5, 10, 25, 50, 75, 100, 125, 150, 175, 197];
 
 export default function StatsPage() {
   return (

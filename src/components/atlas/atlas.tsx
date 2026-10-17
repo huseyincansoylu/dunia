@@ -6,11 +6,13 @@ import { PlusIcon } from "lucide-react";
 import { saveCountryDetails, setCountryVisited, type SaveResult } from "@/app/atlas/actions";
 import { getCountry, visitStats, type Locale } from "@/data/countries";
 import { GlobeCanvas } from "@/components/profile/globe-canvas";
+import { crossedMilestone } from "@/lib/milestones";
 import { isCounted } from "@/lib/visit-status";
 import { cn } from "@/lib/utils";
 import { AddSheet } from "./add-sheet";
 import { CountrySheet, type Entry } from "./country-sheet";
 import { DeviceImport } from "./device-import";
+import { MilestoneSheet, type Milestone } from "./milestone-sheet";
 import { WorldMap } from "./world-map";
 
 // English only for now; country names already exist in other locales.
@@ -28,6 +30,25 @@ type AtlasProps = {
   suggestedHome: string | null;
 };
 
+/** The highest milestone already celebrated on this device, so removing and re-adding doesn't repeat it. */
+const MILESTONE_KEY = "dunia:milestone";
+function celebrated(): number {
+  try {
+    return Number(localStorage.getItem(MILESTONE_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+function markCelebrated(count: number) {
+  try {
+    localStorage.setItem(MILESTONE_KEY, String(count));
+  } catch {
+    // Storage unavailable: it may show again, which is harmless.
+  }
+}
+
+const countedIn = (list: readonly { status: Entry["status"] }[]) => list.filter((e) => isCounted(e.status)).length;
+
 const NETWORK_ERROR = "Couldn't save your change. Check your connection and try again.";
 
 /**
@@ -40,6 +61,7 @@ export function Atlas({ initialEntries, globeRotate, suggestedHome }: AtlasProps
   const [saving, setSaving] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [milestone, setMilestone] = useState<Milestone | null>(null);
 
   const byIso = useMemo(() => new Map(entries.map((e) => [e.iso2, e])), [entries]);
   // Only visited and lived-in countries count; the wishlist stays off the map and the number.
@@ -48,15 +70,27 @@ export function Atlas({ initialEntries, globeRotate, suggestedHome }: AtlasProps
   const stats = useMemo(() => visitStats(visited), [visited]);
   const recent = visited.slice(-RECENT_COUNT).reverse();
 
+  /** After a successful save: celebrate a newly reached milestone. `country` is the one just added. */
+  const celebrate = (before: AtlasEntry[], after: AtlasEntry[], country: string | null) => {
+    const reached = crossedMilestone(countedIn(before), countedIn(after));
+    if (reached && reached > celebrated()) {
+      markCelebrated(reached);
+      setMilestone({ count: reached, country });
+    }
+  };
+
   /** Applies a change right away, saves it, and puts the previous entries back if saving fails. */
-  const commit = async (next: AtlasEntry[], save: () => Promise<SaveResult>): Promise<string | null> => {
+  const commit = async (next: AtlasEntry[], save: () => Promise<SaveResult>, added: string | null = null): Promise<string | null> => {
     const previous = entries;
     setEntries(next);
     setError(null);
     setSaving((n) => n + 1);
     try {
       const result = await save();
-      if (result.ok) return null;
+      if (result.ok) {
+        celebrate(previous, next, added);
+        return null;
+      }
       setEntries(previous);
       setError(result.error);
       return result.error;
@@ -80,21 +114,21 @@ export function Atlas({ initialEntries, globeRotate, suggestedHome }: AtlasProps
         ? entries.map((e) => (e.iso2 === iso2 ? { ...e, status: "visited" as const } : e))
         : [...entries, { iso2, status: "visited" as const, year: null, note: null }]
       : without(iso2);
-    void commit(next, () => setCountryVisited(iso2, on));
+    void commit(next, () => setCountryVisited(iso2, on), on ? iso2 : null);
   };
 
   const saveDetails = (iso2: string, entry: Entry) => {
     const next = byIso.has(iso2)
       ? entries.map((e) => (e.iso2 === iso2 ? { iso2, ...entry } : e))
       : [...entries, { iso2, ...entry }];
-    return commit(next, () => saveCountryDetails(iso2, entry));
+    return commit(next, () => saveCountryDetails(iso2, entry), iso2);
   };
 
   const remove = (iso2: string) => commit(without(iso2), () => setCountryVisited(iso2, false));
 
   const addHome = (iso2: string) => {
     const entry = { status: "lived" as const, year: null, note: null };
-    void commit([...entries, { iso2, ...entry }], () => saveCountryDetails(iso2, entry));
+    void commit([...entries, { iso2, ...entry }], () => saveCountryDetails(iso2, entry), iso2);
   };
 
   const deviceImport = (
@@ -253,6 +287,8 @@ export function Atlas({ initialEntries, globeRotate, suggestedHome }: AtlasProps
         onSave={saveDetails}
         onRemove={remove}
       />
+
+      <MilestoneSheet milestone={milestone} onClose={() => setMilestone(null)} />
     </div>
   );
 }
