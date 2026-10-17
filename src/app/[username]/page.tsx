@@ -3,15 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { cache } from "react";
+import { ArrowRightIcon } from "lucide-react";
 import { CONTINENTS, getCountry, visitStats, type Country } from "@/data/countries";
-import { MapPreview } from "@/components/atlas/map-preview";
 import { CONTINENT_NAMES } from "@/components/atlas/visit-summary";
 import { DuniaLogo } from "@/components/brand/dunia-logo";
-import { buttonVariants } from "@/components/ui/button";
+import { ProfileGlobe } from "@/components/profile/globe";
 import { getCurrentUser } from "@/lib/auth";
 import { getProfileByUsername, type PublicProfile } from "@/lib/profiles";
 import { normalizeUsername, usernameProblem } from "@/lib/username";
-import { cn } from "@/lib/utils";
 
 type Props = PageProps<"/[username]">;
 
@@ -77,61 +76,61 @@ function Profile({ profile, isOwner }: { profile: PublicProfile; isOwner: boolea
 
   return (
     <main className="flex flex-1 flex-col bg-deep">
-      {/* Map first: the hero stays deep water in both themes, like the story image. */}
-      <section className="pb-12 text-deep-foreground">
-        <div className="mx-auto w-full max-w-2xl">
-          <header className="flex h-14 items-center justify-between px-5">
-            <Link
-              href="/"
-              aria-label="Dunia home"
-              className="rounded-md text-white outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              <DuniaLogo tone="onDeep" className="text-lg" />
+      {/* Globe hero: everything that matters fits the first screen of Instagram's in-app browser. */}
+      <section className="mx-auto flex w-full max-w-md flex-col items-center px-5 pb-10 text-deep-foreground">
+        <header className="flex h-14 w-full items-center justify-between">
+          <Link
+            href="/"
+            aria-label="Dunia home"
+            className="rounded-md text-white outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <DuniaLogo tone="onDeep" className="text-lg" />
+          </Link>
+          {!isOwner && (
+            <Link href="/signup" className="py-2.5 text-sm font-medium text-deep-muted hover:text-white">
+              Create yours
             </Link>
-            <span className="font-mono text-xs text-deep-muted">dunia/{profile.username}</span>
-          </header>
+          )}
+        </header>
 
-          {/* On a phone the map runs past both edges so the countries are big enough to see. */}
-          <div className="overflow-hidden">
-            <div className="-mx-[12%] sm:mx-0">
-              <MapPreview
-                visited={profile.visited}
-                tone="deep"
-                animate
-                label={`World map with ${stats.visited} countries ${name} has visited`}
-              />
-            </div>
-          </div>
+        <ProfileGlobe
+          username={profile.username}
+          visited={profile.visited}
+          label={`A globe with the ${stats.visited} countries ${name} has visited`}
+          className="-mt-1 w-[330px] max-w-full"
+        />
 
-          <div className="relative -mt-4 px-5">
-            <p className="font-heading text-7xl leading-[0.85] font-extrabold tracking-tighter text-white tabular-nums">
-              {stats.visited}
-              <span className="text-[0.4em] tracking-tight text-deep-muted">/{stats.total}</span>
-            </p>
-            <p className="mt-2 text-sm text-deep-muted">
-              {stats.visited === 1 ? "country" : "countries"} · {stats.percent}% of the world
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="-mt-6 flex flex-1 flex-col rounded-t-3xl bg-background text-foreground">
-        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-5 pt-3 pb-10">
-          <span className="mx-auto h-1 w-10 rounded-full bg-land sm:hidden" aria-hidden="true" />
-
-          <div className="flex items-center gap-3">
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-secondary font-heading text-xl font-bold text-secondary-foreground uppercase">
+        <div className="-mt-1 flex flex-col items-center gap-2.5 text-center">
+          <p className="flex items-center gap-2 text-[15px] text-deep-muted">
+            <span className="grid size-7 place-items-center rounded-full bg-white/10 text-[13px] font-semibold text-white uppercase">
               {name.charAt(0)}
             </span>
-            <div className="min-w-0">
-              <h1 className="truncate text-2xl font-extrabold">{name}</h1>
-              <p className="truncate text-sm text-muted-foreground">
-                @{profile.username} · {stats.continentsVisited}{" "}
-                {stats.continentsVisited === 1 ? "continent" : "continents"}
-              </p>
-            </div>
-          </div>
+            <span className="font-semibold text-white">{name}</span>@{profile.username}
+          </p>
+          <h1 className="font-heading text-[84px] leading-[0.85] font-extrabold tracking-[-0.05em] text-white tabular-nums">
+            {stats.visited}
+            <span className="text-[32px] tracking-[-0.02em] text-deep-muted">/{stats.total}</span>
+            <span className="sr-only"> countries visited by {name}</span>
+          </h1>
+          <p className="text-[15px] text-deep-muted">
+            {stats.visited === 1 ? "country" : "countries"} · {stats.percent}% of the world ·{" "}
+            {stats.continentsVisited} {stats.continentsVisited === 1 ? "continent" : "continents"}
+          </p>
+        </div>
 
+        {!isOwner && (
+          <Link
+            href="/signup"
+            className="mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white text-base font-semibold text-deep outline-none hover:bg-white/90 focus-visible:ring-3 focus-visible:ring-white/50"
+          >
+            How many have you seen?
+            <ArrowRightIcon className="size-[18px] text-primary dark:text-[#0b4f6c]" aria-hidden="true" />
+          </Link>
+        )}
+      </section>
+
+      <section className="flex flex-1 flex-col rounded-t-3xl bg-background text-foreground">
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-5 pt-6 pb-10">
           {stats.visited === 0 ? (
             <p className="rounded-2xl border bg-card px-5 py-8 text-center text-muted-foreground">
               {isOwner ? "Your map is empty. Add the countries you've been to." : `${name} hasn't added any countries yet.`}
@@ -151,6 +150,7 @@ function Profile({ profile, isOwner }: { profile: PublicProfile; isOwner: boolea
               </ul>
 
               <div>
+                <h2 className="mb-1 text-sm font-medium">Countries</h2>
                 <CountryRows countries={countries.slice(0, PREVIEW_COUNT)} />
                 {countries.length > PREVIEW_COUNT && (
                   <details className="group">
@@ -163,18 +163,6 @@ function Profile({ profile, isOwner }: { profile: PublicProfile; isOwner: boolea
                 )}
               </div>
             </>
-          )}
-
-          {!isOwner && (
-            <Link
-              href="/signup"
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "mt-auto h-13 rounded-2xl bg-deep text-base text-deep-foreground hover:bg-deep/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
-              )}
-            >
-              Create your map
-            </Link>
           )}
         </div>
       </section>

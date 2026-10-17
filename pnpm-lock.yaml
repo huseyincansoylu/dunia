@@ -23,6 +23,9 @@ importers:
       cn:
         specifier: ^0.5.0
         version: 0.5.0
+      d3-geo:
+        specifier: 3.1.1
+        version: 3.1.1
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(postgres@3.4.9)
@@ -50,6 +53,9 @@ importers:
       shadcn:
         specifier: ^4.22.0
         version: 4.22.0
+      topojson-client:
+        specifier: 3.1.0
+        version: 3.1.0
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -75,9 +81,9 @@ importers:
       '@types/topojson-client':
         specifier: ^3.1.5
         version: 3.1.5
-      d3-geo:
-        specifier: 3.1.1
-        version: 3.1.1
+      '@types/topojson-specification':
+        specifier: ^1.0.5
+        version: 1.0.5
       drizzle-kit:
         specifier: ^0.31.11
         version: 0.31.11
@@ -93,9 +99,6 @@ importers:
       tailwindcss:
         specifier: ^4
         version: 4.3.3
-      topojson-client:
-        specifier: 3.1.0
-        version: 3.1.0
       typescript:
         specifier: ^5
         version: 5.9.3
