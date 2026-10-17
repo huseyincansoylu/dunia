@@ -4,8 +4,7 @@ import { AppTabs } from "@/components/atlas/app-tabs";
 export default function AtlasLayout({ children }: LayoutProps<"/atlas">) {
   return (
     <>
-      {/* Bottom padding keeps content clear of the tab bar. */}
-      <div className="flex flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))]">{children}</div>
+      <div className="flex flex-1 flex-col">{children}</div>
       <AppTabs />
     </>
   );

@@ -6,6 +6,7 @@ import { ArrowUpRightIcon } from "lucide-react";
 import { Atlas } from "@/components/atlas/atlas";
 import { requireUser } from "@/lib/auth";
 import { aimAt } from "@/lib/globe";
+import { guessHomeCountry } from "@/lib/home-country";
 import { GLOBE_POINTS } from "@/lib/globe-svg";
 import { getProfile } from "@/lib/profiles";
 import { getAtlasEntries } from "@/lib/visits";
@@ -26,7 +27,7 @@ export default function AtlasPage() {
 
 async function AtlasData() {
   const user = await requireUser("/atlas");
-  const [profile, entries] = await Promise.all([getProfile(user.id), getAtlasEntries(user.id)]);
+  const [profile, entries, home] = await Promise.all([getProfile(user.id), getAtlasEntries(user.id), guessHomeCountry()]);
   if (!profile?.username) redirect("/welcome");
 
   return (
@@ -45,6 +46,7 @@ async function AtlasData() {
 
       <Atlas
         initialEntries={entries}
+        suggestedHome={home}
         globeRotate={aimAt(new Set(entries.filter((e) => isCounted(e.status)).map((e) => e.iso2)), GLOBE_POINTS)}
       />
     </div>

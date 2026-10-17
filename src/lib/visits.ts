@@ -60,3 +60,29 @@ export async function saveVisit(userId: string, entry: AtlasEntry) {
     .values({ userId, countryIso2: entry.iso2, ...values })
     .onConflictDoUpdate({ target: [visits.userId, visits.countryIso2], set: values });
 }
+
+/**
+ * The first-run picks: home becomes "lived" (it counts, and keeps any year or note
+ * already there), the rest are added as visited.
+ */
+export async function startMap(userId: string, home: string | null, visitedIso2s: string[]) {
+  await db.transaction(async (tx) => {
+    if (home) {
+      await tx
+        .insert(visits)
+        .values({ userId, countryIso2: home, status: "lived" })
+        .onConflictDoUpdate({ target: [visits.userId, visits.countryIso2], set: { status: "lived" } });
+    }
+    const rest = visitedIso2s.filter((c) => c !== home);
+    if (rest.length > 0) {
+      await tx
+        .insert(visits)
+        .values(rest.map((countryIso2) => ({ userId, countryIso2, status: "visited" as const })))
+        .onConflictDoUpdate({
+          target: [visits.userId, visits.countryIso2],
+          set: { status: "visited" },
+          setWhere: sql`${visits.status} = 'want'`,
+        });
+    }
+  });
+}

@@ -61,7 +61,9 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
   const email = readEmail(formData);
   const username = normalizeUsername(String(formData.get("username") ?? ""));
   const password = String(formData.get("password") ?? "");
-  const next = safeNextPath(String(formData.get("next") ?? ""));
+  // New accounts start with the first-run flow unless they were headed somewhere specific.
+  const requested = safeNextPath(String(formData.get("next") ?? ""));
+  const next = requested === "/atlas" ? "/atlas/start" : requested;
 
   const fieldErrors = {
     username: usernameProblem(username) ?? undefined,
@@ -133,7 +135,7 @@ export async function chooseUsername(_prev: AuthFormState, formData: FormData): 
 
   const claim = await claimUsername(user.id, username);
   if (claim === "taken") return { username, fieldErrors: { username: "That username is taken. Try another one." } };
-  redirect("/atlas");
+  redirect("/atlas/start");
 }
 
 export async function requestPasswordReset(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {

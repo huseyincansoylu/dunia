@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
+import { PlusIcon } from "lucide-react";
 import { saveCountryDetails, setCountryVisited, type SaveResult } from "@/app/atlas/actions";
 import { getCountry, visitStats, type Locale } from "@/data/countries";
 import { GlobeCanvas } from "@/components/profile/globe-canvas";
@@ -22,6 +24,8 @@ type AtlasProps = {
   initialEntries: AtlasEntry[];
   /** Where the globe faces first, computed on the server from the countries. */
   globeRotate: [number, number];
+  /** For an empty map: a guess at the user's home country, offered as the first one to add. */
+  suggestedHome: string | null;
 };
 
 const NETWORK_ERROR = "Couldn't save your change. Check your connection and try again.";
@@ -30,7 +34,7 @@ const NETWORK_ERROR = "Couldn't save your change. Check your connection and try 
  * The map tab. Changes show immediately and save in the background; if a save
  * fails, the map goes back to how it was and an error appears.
  */
-export function Atlas({ initialEntries, globeRotate }: AtlasProps) {
+export function Atlas({ initialEntries, globeRotate, suggestedHome }: AtlasProps) {
   const [entries, setEntries] = useState(initialEntries);
   const [view, setView] = useState<"globe" | "flat">("globe");
   const [saving, setSaving] = useState(0);
@@ -88,17 +92,81 @@ export function Atlas({ initialEntries, globeRotate }: AtlasProps) {
 
   const remove = (iso2: string) => commit(without(iso2), () => setCountryVisited(iso2, false));
 
+  const addHome = (iso2: string) => {
+    const entry = { status: "lived" as const, year: null, note: null };
+    void commit([...entries, { iso2, ...entry }], () => saveCountryDetails(iso2, entry));
+  };
+
+  const deviceImport = (
+    <DeviceImport
+      visited={visitedSet}
+      onImported={(codes) =>
+        setEntries((list) => [
+          ...list,
+          ...codes.filter((c) => !list.some((e) => e.iso2 === c)).map((iso2) => ({ iso2, status: "visited" as const, year: null, note: null })),
+        ])
+      }
+    />
+  );
+
+  if (entries.length === 0) {
+    const home = suggestedHome ? getCountry(suggestedHome) : undefined;
+    return (
+      <div className="flex flex-col gap-[18px]">
+        {deviceImport}
+        <section>
+          <p className="font-heading text-6xl leading-[0.85] font-extrabold tracking-[-0.05em] text-muted-foreground/60 tabular-nums">
+            0<span className="text-2xl tracking-[-0.02em]">/{stats.total}</span>
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground" role="status" aria-live="polite">
+            {saving > 0 ? "Saving…" : "Every country you add lights up here."}
+          </p>
+        </section>
+        {error && (
+          <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        {/* Just a picture until the first country: inert keeps its countries out of reach. */}
+        <div inert className="opacity-60 grayscale">
+          <WorldMap visited={visitedSet} locale={LOCALE} onSelect={setSelected} />
+        </div>
+        <section className="flex flex-col gap-3 rounded-[22px] border bg-card p-[18px]">
+          <h2 className="font-heading text-xl font-extrabold">{home ? "Start with home" : "Start your map"}</h2>
+          <p className="text-[15px] text-muted-foreground">
+            {home
+              ? `Add ${home.name[LOCALE]}, then the places you've traveled to.`
+              : "Pick the countries you've been to. It takes about a minute."}
+          </p>
+          {home && (
+            <button
+              type="button"
+              onClick={() => addHome(home.iso2)}
+              className="flex h-[52px] items-center justify-center gap-2 rounded-[14px] bg-primary text-base font-semibold text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <PlusIcon className="size-[18px]" strokeWidth={2.5} aria-hidden="true" />
+              Add {home.name[LOCALE]}
+            </button>
+          )}
+          <Link
+            href="/atlas/start"
+            className={cn(
+              "flex items-center justify-center rounded-[14px] font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              home
+                ? "h-12 border bg-card text-[15px] hover:bg-secondary"
+                : "h-[52px] bg-primary text-base text-primary-foreground hover:bg-primary/90"
+            )}
+          >
+            Pick countries
+          </Link>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-[18px]">
-      <DeviceImport
-        visited={visitedSet}
-        onImported={(codes) =>
-          setEntries((list) => [
-            ...list,
-            ...codes.filter((c) => !list.some((e) => e.iso2 === c)).map((iso2) => ({ iso2, status: "visited" as const, year: null, note: null })),
-          ])
-        }
-      />
+      {deviceImport}
 
       <section className="flex items-end justify-between gap-3">
         <div>

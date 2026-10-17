@@ -3,7 +3,7 @@
 import { COUNTRIES, getCountry } from "@/data/countries";
 import { getCurrentUser } from "@/lib/auth";
 import { NOTE_MAX_LENGTH, VISIT_STATUSES, YEAR_MIN, type VisitStatus } from "@/lib/visit-status";
-import { addVisits, removeVisits, saveVisit } from "@/lib/visits";
+import { addVisits, removeVisits, saveVisit, startMap } from "@/lib/visits";
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 
@@ -80,5 +80,29 @@ export async function saveCountryDetails(iso2: string, details: CountryDetails):
     return { ok: true };
   } catch {
     return { ok: false, error: `Couldn't save ${country.name.en}. Check your connection and try again.` };
+  }
+}
+
+/** The first-run flow (/atlas/start): a home country and a batch of visited ones. */
+export async function saveFirstMap(home: string | null, iso2s: string[]): Promise<SaveResult> {
+  const user = await getCurrentUser();
+  if (!user) return SIGNED_OUT;
+  if (!Array.isArray(iso2s)) return { ok: false, error: "Nothing to save." };
+
+  const homeCode = home ? (getCountry(String(home))?.iso2 ?? null) : null;
+  const valid = [
+    ...new Set(
+      iso2s
+        .slice(0, COUNTRIES.length)
+        .map((c) => getCountry(String(c))?.iso2)
+        .filter((c): c is string => !!c)
+    ),
+  ];
+
+  try {
+    await startMap(user.id, homeCode, valid);
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Couldn't save your map. Check your connection and try again." };
   }
 }
