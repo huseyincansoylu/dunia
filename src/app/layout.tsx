@@ -20,6 +20,8 @@ const funnelDisplay = Funnel_Display({
 });
 
 export const metadata: Metadata = {
+  // Absolute URLs for link previews (og:image) come from the deployed domain.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: {
     default: "Dunia",
     template: "%s · Dunia",

@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookmarkIcon, ChartNoAxesColumnIcon, MapIcon } from "lucide-react";
+import { BookmarkIcon, ChartNoAxesColumnIcon, MapIcon, ShareIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Tabs appear here as their pages ship: Share and Me come next.
+// Tabs appear here as their pages ship: Me comes next.
 const TABS = [
   { href: "/atlas", label: "Map", Icon: MapIcon },
   { href: "/atlas/stats", label: "Stats", Icon: ChartNoAxesColumnIcon },
   { href: "/atlas/wishlist", label: "Wishlist", Icon: BookmarkIcon },
+  { href: "/atlas/share", label: "Share", Icon: ShareIcon },
 ];
 
 /** The signed-in app's bottom tab bar. */
